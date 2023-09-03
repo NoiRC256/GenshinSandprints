@@ -1,0 +1,59 @@
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+#pragma kernel CSFade
+
+// Create a RenderTexture with enableRandomWrite flag and set it
+// with cs.SetTexture
+RWTexture2D<float4> Result;
+Texture2D<float4> CurResult;
+Texture2D<float4> ObjectDepthMap;
+Texture2D<float4> TerrainDepthMap;
+
+int Width;
+int Height;
+float OrthoCamSize;
+
+float DeltaTime = 0.02f;
+float RecoverySpeed;
+float WorldToTextureVecFactor;
+
+float Remap(float value, float from1, float from2, float to1, float to2)
+{
+    return to1 + (value - from1) * (to2 - to1) / (from2 - from1);
+}
+
+[numthreads(16, 16, 1)]
+void CSMain(uint3 id : SV_DispatchThreadID)
+{
+    float resultR = CurResult[id.xy].r;
+    float objectDepth = ObjectDepthMap[id.xy].r;
+    float terrainDepth = (1 - TerrainDepthMap[uint2(id.x, Height - id.y)].r) + 0.01;
+
+    float indentDepth = ObjectDepthMap[id.xy].r;
+    if (indentDepth > 0.495)
+    {
+        resultR = indentDepth;
+    }
+
+    // // Calculate indent depth by normalizing object depth based on terrain depth.
+    // float indentDepth = clamp((10.0 - 0.1) * (objectDepth - terrainDepth), 0, 1);
+    // indentDepth = clamp(Remap(indentDepth, 0.0, 0.1, 0.0, 1.0), 0, 1);
+    // if (indentDepth > 0.01)
+    // {
+    //     resultR = indentDepth;
+    // }
+    
+    Result[id.xy] = float4(resultR, 0, 0, 0);
+}
+
+[numthreads(16, 16, 1)]
+void CSFade(uint3 id : SV_DispatchThreadID)
+{
+    // Fade out current result over time.
+    float4 curResult = CurResult[id.xy];
+    float rate = DeltaTime * RecoverySpeed * max(10.0 * curResult.r, 0.001);
+    float resultR = float(max(curResult.r - rate, 0.0));
+    Result[id.xy] = float4(resultR, 0, 0, 0);
+}
+
+

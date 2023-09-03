@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: 24bc9f4beb385f844bc509f8f934a223
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - FollowTarget: {instanceID: 0}
+  - MeshCam: {instanceID: 0}
+  - TerrainCam: {instanceID: 0}
+  - MeshRT: {instanceID: 0}
+  - TerrainRT: {instanceID: 0}
+  - FinalRT: {instanceID: 0}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
