@@ -12,6 +12,8 @@ Texture2D<float4> TerrainDepthMap;
 int Width;
 int Height;
 float OrthoCamSize;
+float CamDistance;
+float CamNearClip;
 
 float DeltaTime = 0.02f;
 float RecoverySpeed;
@@ -29,19 +31,12 @@ void CSMain(uint3 id : SV_DispatchThreadID)
     float objectDepth = ObjectDepthMap[id.xy].r;
     float terrainDepth = (1 - TerrainDepthMap[uint2(id.x, Height - id.y)].r) + 0.01;
 
-    float indentDepth = ObjectDepthMap[id.xy].r;
-    if (indentDepth > 0.495)
+    // Calculate indent depth by normalizing object depth based on terrain depth.
+    float indentDepth = clamp(40.0 * (objectDepth - terrainDepth), 0, 1);
+    if (indentDepth > 0.01)
     {
         resultR = indentDepth;
     }
-
-    // // Calculate indent depth by normalizing object depth based on terrain depth.
-    // float indentDepth = clamp((10.0 - 0.1) * (objectDepth - terrainDepth), 0, 1);
-    // indentDepth = clamp(Remap(indentDepth, 0.0, 0.1, 0.0, 1.0), 0, 1);
-    // if (indentDepth > 0.01)
-    // {
-    //     resultR = indentDepth;
-    // }
     
     Result[id.xy] = float4(resultR, 0, 0, 0);
 }
@@ -55,5 +50,4 @@ void CSFade(uint3 id : SV_DispatchThreadID)
     float resultR = float(max(curResult.r - rate, 0.0));
     Result[id.xy] = float4(resultR, 0, 0, 0);
 }
-
 

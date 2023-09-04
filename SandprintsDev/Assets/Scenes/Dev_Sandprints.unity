@@ -175,7 +175,7 @@ GameObject:
   - component: {fileID: 350711204}
   - component: {fileID: 350711203}
   m_Layer: 6
-  m_Name: Plane (1)
+  m_Name: Plane_Slope_1x1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -299,6 +299,7 @@ Transform:
   - {fileID: 549985257}
   - {fileID: 1512242881}
   - {fileID: 350711202}
+  - {fileID: 1396915375}
   m_Father: {fileID: 0}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -947,7 +948,7 @@ GameObject:
   - component: {fileID: 1396915373}
   - component: {fileID: 1396915372}
   m_Layer: 0
-  m_Name: Plane
+  m_Name: SandprintsDebugScreen
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1032,13 +1033,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1396915371}
-  m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
+  m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
   m_LocalPosition: {x: 0, y: 5, z: -5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
-  m_RootOrder: 5
+  m_Father: {fileID: 450946708}
+  m_RootOrder: -1
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
 --- !u!1 &1512242877
 GameObject:
@@ -1053,7 +1054,7 @@ GameObject:
   - component: {fileID: 1512242879}
   - component: {fileID: 1512242878}
   m_Layer: 6
-  m_Name: Plane
+  m_Name: Plane_1x1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1190,7 +1191,7 @@ GameObject:
   - component: {fileID: 1603732621}
   - component: {fileID: 1603732620}
   m_Layer: 0
-  m_Name: SandprintsManager
+  m_Name: SandprintManager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1240,7 +1241,7 @@ Transform:
   - {fileID: 2062235301}
   - {fileID: 1912177458}
   m_Father: {fileID: 0}
-  m_RootOrder: 6
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1903248896
 GameObject:
@@ -1391,7 +1392,7 @@ GameObject:
   - component: {fileID: 1912177457}
   - component: {fileID: 1912177455}
   m_Layer: 0
-  m_Name: SandprintTerrainCam
+  m_Name: TerrainCam
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1519,7 +1520,7 @@ GameObject:
   - component: {fileID: 2062235300}
   - component: {fileID: 2062235298}
   m_Layer: 0
-  m_Name: SandprintObjectCam
+  m_Name: ObjectCam
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
