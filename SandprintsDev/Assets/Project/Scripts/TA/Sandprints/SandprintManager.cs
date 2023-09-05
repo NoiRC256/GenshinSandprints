@@ -14,7 +14,7 @@ namespace Sandprints
         }
 
         public Transform FollowTarget;
-        public float CamDistance = 10;
+        public float CamHeight = 10;
         public float CamNearClip = 0.1f;
         public int CamOrthographicSize = 10;
         public Camera ObjectCam;
@@ -89,7 +89,7 @@ namespace Sandprints
 
             _dynamicsComputeShader.SetInt("Width", RTWidth);
             _dynamicsComputeShader.SetInt("Height", RTHeight);
-            _dynamicsComputeShader.SetFloat("CamRange", (CamDistance - CamNearClip) * 2f);
+            _dynamicsComputeShader.SetFloat("CamDistance", CamHeight - CamNearClip);
             _dynamicsComputeShader.SetFloat("CamOrthoSize", CamOrthographicSize);
             _dynamicsComputeShader.SetFloat("DeltaTime", Time.deltaTime);
             _dynamicsComputeShader.SetFloat("RecoverySpeed", RecoverySpeed);

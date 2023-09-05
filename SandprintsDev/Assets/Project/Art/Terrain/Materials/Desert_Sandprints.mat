@@ -110,7 +110,7 @@ Material:
     - _Smoothness: 0
     - _SmoothnessTextureChannel: 1
     - _SnowDepth: 0.3
-    - _SnowHeight: 0.3
+    - _SnowHeight: 1
     - _SnowTextureOpacity: 0.3
     - _SnowTextureScale: 0.3
     - _SparkCutoff: 0.85

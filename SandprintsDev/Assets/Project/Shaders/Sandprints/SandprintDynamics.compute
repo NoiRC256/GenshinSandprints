@@ -10,7 +10,7 @@ Texture2D<float4> TerrainDepthMap;
 
 int Width;
 int Height;
-float CamRange;
+float CamDistance = 9.9f;
 
 float DeltaTime = 0.02f;
 float RecoverySpeed;
@@ -27,15 +27,15 @@ void CSMain(uint3 id : SV_DispatchThreadID)
     float curResult = CurResult[id.xy].r;
 
     // Fade out indent pixels.
-    float rate = DeltaTime * RecoverySpeed * max(2.0 * curResult.r, 1.0);
+    float rate = DeltaTime * RecoverySpeed;
     curResult = float(max(curResult.r - rate, 0.0));
 
     // Add new indent pixels.
     float objectDepth = ObjectDepthMap[id.xy].r;
     float terrainDepth = (1.0 - TerrainDepthMap[uint2(id.x, Height - id.y)].r);
     // Calculate indent depth by normalizing object depth based on terrain depth.
-    float indentDepth = clamp((objectDepth - terrainDepth) * 9.9, 0, 1);
-    if (indentDepth > 0.01) curResult = indentDepth;
+    float indentDepth = clamp((objectDepth - terrainDepth) * CamDistance, 0, 1);
+    curResult = max(curResult, indentDepth);
     
     Result[id.xy] = float4(curResult, 0, 0, 0);
 }

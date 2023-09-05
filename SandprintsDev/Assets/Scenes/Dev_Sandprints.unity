@@ -928,7 +928,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1262618937}
   m_LocalRotation: {x: -0, y: -0, z: 0.38268274, w: 0.9238798}
-  m_LocalPosition: {x: 0.284, y: 0.5, z: 0.49}
+  m_LocalPosition: {x: 0.284, y: 1, z: 0.49}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1210,7 +1210,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   FollowTarget: {fileID: 0}
-  CamDistance: 10
+  CamHeight: 10
   CamNearClip: 0.1
   CamOrthographicSize: 10
   ObjectCam: {fileID: 2062235300}
@@ -1220,7 +1220,7 @@ MonoBehaviour:
   RTDepth: 8
   _dynamicsComputeShader: {fileID: 7200000, guid: fbb84465fb40921449963ac6b63889b7,
     type: 3}
-  RecoverySpeed: 0.05
+  RecoverySpeed: 0.01
   DynamicsSimulationRate: 0
   RTWidth: 1024
   RTHeight: 1024
