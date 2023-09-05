@@ -151,6 +151,7 @@ struct PatchTess
     float EdgeTess[3] : SV_TessFactor;
     float InsideTess : SV_InsideTessFactor;
 };
+
 PatchTess ConstantHS(InputPatch < Varyings, 3 > patch, uint patchID : SV_PrimitiveID)
 {
     PatchTess pt;

@@ -927,14 +927,14 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1262618937}
-  m_LocalRotation: {x: -0.37508994, y: -0, z: -0, w: 0.9269884}
-  m_LocalPosition: {x: 0.284, y: -0.12, z: 0.49}
+  m_LocalRotation: {x: -0.35085374, y: -0.13264339, z: 0.32781175, w: 0.86709106}
+  m_LocalPosition: {x: 0.284, y: 0.86, z: 0.49}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 4
-  m_LocalEulerAnglesHint: {x: -44.06, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: -31.432, y: -32.627, z: 50.835}
 --- !u!1 &1396915371
 GameObject:
   m_ObjectHideFlags: 0
@@ -1218,10 +1218,10 @@ MonoBehaviour:
   RTDepth: 8
   _dynamicsComputeShader: {fileID: 7200000, guid: fbb84465fb40921449963ac6b63889b7,
     type: 3}
-  RecoverySpeed: 0.05
+  RecoverySpeed: 0
   DynamicsSimulationRate: 0
-  RTWidth: 512
-  RTHeight: 512
+  RTWidth: 1024
+  RTHeight: 1024
   CurrentIndentRTName: _IndentRT
   SandprintsRTName: _SandprintsRT
   DebugMode: 1

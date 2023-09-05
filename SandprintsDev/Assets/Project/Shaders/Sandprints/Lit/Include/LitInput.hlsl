@@ -30,6 +30,7 @@ CBUFFER_START(UnityPerMaterial)
     half _PathNormalScale;
     half _DownInt;
     int _Tesselation;
+    half _MaxTessDistance;
 CBUFFER_END
 
 TEXTURE2D(_OcclusionMap);       SAMPLER(sampler_OcclusionMap);

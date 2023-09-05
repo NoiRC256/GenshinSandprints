@@ -46,7 +46,7 @@ void CSFade(uint3 id : SV_DispatchThreadID)
 {
     // Fade out current result over time.
     float4 curResult = CurResult[id.xy];
-    float rate = DeltaTime * RecoverySpeed * max(10.0 * curResult.r, 0.001);
+    float rate = DeltaTime * RecoverySpeed;
     float resultR = float(max(curResult.r - rate, 0.0));
     Result[id.xy] = float4(resultR, 0, 0, 0);
 }
