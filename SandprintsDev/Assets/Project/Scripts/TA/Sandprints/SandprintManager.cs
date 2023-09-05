@@ -35,6 +35,8 @@ namespace Sandprints
         public int RTHeight = 512;
         public string CurrentIndentRTName = "_IndentRT";
         public string SandprintsRTName = "_SandprintsRT";
+        public Material SandprintsPostProcessMat = null;
+        public int BlurIterations = 1;
 
         [Header("Debug")]
         public bool DebugMode = false;
@@ -57,9 +59,14 @@ namespace Sandprints
         private RenderTexture _finalRT;
         private int _mainKernel;
         private float _worldToTextureFactor;
+        private RenderTexture[] _blurBuffer1;
+        private RenderTexture[] _blurBuffer2;
 
         private void Awake()
         {
+            _blurBuffer1 = new RenderTexture[BlurIterations];
+            _blurBuffer2 = new RenderTexture[BlurIterations];
+
             // Setup render textures.
             _worldToTextureFactor = RTWidth / (CamOrthographicSize * 2f);
 
@@ -122,10 +129,42 @@ namespace Sandprints
             // Push the updated result back to CurrentIndentRT to prepare for the next frame.
             cmd.Blit(_indentRT, _currentIndentRT);
 
-            cmd.Blit(_currentIndentRT, _finalRT);
+            // Post processing.
+            RenderTexture prefilterRT = RenderTexture.GetTemporary(RTWidth / 2, RTHeight / 2, 0, RenderTextureFormat.Default);
+            cmd.Blit(_currentIndentRT, prefilterRT);
+            RenderTexture last = prefilterRT;
+            for (int level = 0; level < BlurIterations; level++)
+            {
+                _blurBuffer1[level] = RenderTexture.GetTemporary(last.width / 2, last.height / 2, 0, RenderTextureFormat.Default);
+                cmd.Blit(last, _blurBuffer1[level], SandprintsPostProcessMat, 0);
+                last = _blurBuffer1[level];
+            }
+            for (int level = BlurIterations - 1; level >= 0; level--)
+            {
+                _blurBuffer2[level] = RenderTexture.GetTemporary(last.width * 2, last.height * 2, 0, RenderTextureFormat.Default);
+                cmd.Blit(last, _blurBuffer2[level], SandprintsPostProcessMat, 1);
+                last = _blurBuffer2[level];
+            }
+            cmd.Blit(last, _finalRT);
+
             Graphics.ExecuteCommandBuffer(cmd);
             cmd.Clear();
             CommandBufferPool.Release(cmd);
+
+            for (int i = 0; i < BlurIterations; i++)
+            {
+                if (_blurBuffer1[i] != null)
+                {
+                    RenderTexture.ReleaseTemporary(_blurBuffer1[i]);
+                    _blurBuffer1[i] = null;
+                }
+                if (_blurBuffer2[i] != null)
+                {
+                    RenderTexture.ReleaseTemporary(_blurBuffer2[i]);
+                    _blurBuffer2[i] = null;
+                }
+            }
+            RenderTexture.ReleaseTemporary(prefilterRT);
         }
     }
 }

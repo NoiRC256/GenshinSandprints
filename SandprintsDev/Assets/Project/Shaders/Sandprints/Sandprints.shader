@@ -1,4 +1,4 @@
-Shader "NekoLabs/Sandprints" {
+Shader "NekoLabs/Sandprints/Lit" {
     Properties{
         [Header(Main)]
         _Noise("Ground Noise", 2D) = "gray" {}
@@ -87,7 +87,6 @@ Shader "NekoLabs/Sandprints" {
             // vertex happens in snowtessellation.hlsl
             #pragma fragment frag
             #pragma target 4.0
-            
             
             sampler2D _MainTex, _SparkleNoise;
             CBUFFER_START(UnityPerMaterial)

@@ -1226,6 +1226,9 @@ MonoBehaviour:
   RTHeight: 1024
   CurrentIndentRTName: _IndentRT
   SandprintsRTName: _SandprintsRT
+  SandprintsPostProcessMat: {fileID: 2100000, guid: 29bf29401cf20fe44b22668b485c5244,
+    type: 2}
+  BlurIterations: 1
   DebugMode: 1
   DebugMaterial: {fileID: 2100000, guid: 311a8870cb955df4cb8e568fea7b81bc, type: 2}
 --- !u!4 &1603732621
