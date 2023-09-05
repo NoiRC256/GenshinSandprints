@@ -101,7 +101,7 @@ Material:
     - _NoiseWeight: 0.1
     - _NormalSmoothThreshold: 0.01
     - _OcclusionStrength: 0.405
-    - _PathBlending: 0.3
+    - _PathBlending: 9.21
     - _PathNormalScale: 1
     - _QueueOffset: 0
     - _ReceiveShadowMappingPosOffset: 0

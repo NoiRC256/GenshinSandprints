@@ -205,7 +205,8 @@ Varyings vert(Attributes input)
     float3 normalCoef = SafeNormalize(input.normal);
     float3 snowHeightCoef = saturate(( _SnowHeight) + (SnowNoise * _NoiseWeight));
 
-    input.vertex.xyz += normalCoef * snowHeightCoef * saturate(1 - indentRT.r * _SnowDepth);
+    input.vertex.y -= 1.0;
+    input.vertex.xyz += normalCoef * saturate(1 - min(indentRT.r, _SnowDepth)) + saturate(normalCoef * snowHeightCoef);
     input.vertex.xyz += normalCoef * saturate(indentRT.g * _TrailRimHeight);
 
     float3 normal = normalsFromHeight(_SandprintsRT, float4(uv.xy, 0, 0), _SandprintsRT_TexelSize.xy);

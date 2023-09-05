@@ -21,9 +21,9 @@ Shader "NekoLabs/Sandprints" {
         _PathBlending("Indent Blending", Range(0,10)) = 0.3
         _TrailRimBlending("Indent Rim Blending", Range(0,10)) = 0.3
         _MainTex("Main Texture", 2D) = "white" {}
-        _SnowHeight("Ground Height", Range(0,2)) = 0.3
-        _SnowDepth("Trail Depth", Range(0,100)) = 0.3
-        _TrailRimHeight("Trail Rim Height", Range(0,100)) = 0.3
+        _SnowHeight("Ground Height", Range(0,1)) = 0.3
+        _SnowDepth("Trail Depth", Range(0,1)) = 1
+        _TrailRimHeight("Trail Rim Height", Range(0,1)) = 0.3
         _SnowTextureOpacity("Main Texture Opacity", Range(0,2)) = 0.3
         _SnowTextureScale("Main Texture Scale", Range(0,2)) = 0.3
         

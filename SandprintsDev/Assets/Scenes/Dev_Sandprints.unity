@@ -927,14 +927,14 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1262618937}
-  m_LocalRotation: {x: -0.35085374, y: -0.13264339, z: 0.32781175, w: 0.86709106}
-  m_LocalPosition: {x: 0.284, y: 0.86, z: 0.49}
+  m_LocalRotation: {x: -0, y: -0, z: 0.38268274, w: 0.9238798}
+  m_LocalPosition: {x: 0.284, y: 0.5, z: 0.49}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 4
-  m_LocalEulerAnglesHint: {x: -31.432, y: -32.627, z: 50.835}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 45}
 --- !u!1 &1396915371
 GameObject:
   m_ObjectHideFlags: 0
@@ -1140,7 +1140,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1512242877}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.01, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1210,7 +1210,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   FollowTarget: {fileID: 0}
-  OrthographicSize: 15
+  CamDistance: 10
+  CamNearClip: 0.1
+  CamOrthographicSize: 10
   ObjectCam: {fileID: 2062235300}
   TerrainCam: {fileID: 1912177457}
   ObjectRT: {fileID: 8400000, guid: 7d3d33a5119fa98428adf7f9729ef960, type: 2}
@@ -1218,7 +1220,7 @@ MonoBehaviour:
   RTDepth: 8
   _dynamicsComputeShader: {fileID: 7200000, guid: fbb84465fb40921449963ac6b63889b7,
     type: 3}
-  RecoverySpeed: 0
+  RecoverySpeed: 0.05
   DynamicsSimulationRate: 0
   RTWidth: 1024
   RTHeight: 1024

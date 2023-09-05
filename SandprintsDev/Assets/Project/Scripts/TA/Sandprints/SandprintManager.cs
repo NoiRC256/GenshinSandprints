@@ -14,7 +14,9 @@ namespace Sandprints
         }
 
         public Transform FollowTarget;
-        public int OrthographicSize = 15;
+        public float CamDistance = 10;
+        public float CamNearClip = 0.1f;
+        public int CamOrthographicSize = 10;
         public Camera ObjectCam;
         public Camera TerrainCam;
         [Tooltip("Render texture that contains object depth information captured from bottom.")]
@@ -54,13 +56,12 @@ namespace Sandprints
         /// </summary>
         private RenderTexture _finalRT;
         private int _mainKernel;
-        private int _fadeKernel;
         private float _worldToTextureFactor;
 
         private void Awake()
         {
             // Setup render textures.
-            _worldToTextureFactor = RTWidth / (OrthographicSize * 2f);
+            _worldToTextureFactor = RTWidth / (CamOrthographicSize * 2f);
 
             _indentRT = new RenderTexture(RTWidth, RTHeight, RTDepth, RenderTextureFormat.RFloat);
             _indentRT.wrapMode = TextureWrapMode.Clamp;
@@ -86,19 +87,14 @@ namespace Sandprints
             _dynamicsComputeShader.SetTexture(_mainKernel, "ObjectDepthMap", ObjectRT);
             _dynamicsComputeShader.SetTexture(_mainKernel, "TerrainDepthMap", TerrainRT);
 
-            _fadeKernel = _dynamicsComputeShader.FindKernel("CSFade");
-            _dynamicsComputeShader.SetTexture(_fadeKernel, "Result", _indentRT);
-            _dynamicsComputeShader.SetTexture(_fadeKernel, "CurResult", _currentIndentRT);
-
             _dynamicsComputeShader.SetInt("Width", RTWidth);
             _dynamicsComputeShader.SetInt("Height", RTHeight);
-            _dynamicsComputeShader.SetFloat("OrthoCamSize", OrthographicSize);
-
+            _dynamicsComputeShader.SetFloat("CamRange", (CamDistance - CamNearClip) * 2f);
+            _dynamicsComputeShader.SetFloat("CamOrthoSize", CamOrthographicSize);
             _dynamicsComputeShader.SetFloat("DeltaTime", Time.deltaTime);
             _dynamicsComputeShader.SetFloat("RecoverySpeed", RecoverySpeed);
 
             _dynamicsComputeShader.Dispatch(_mainKernel, RTWidth / 8, RTWidth / 8, 1);
-            _dynamicsComputeShader.Dispatch(_fadeKernel, RTHeight / 8, RTHeight / 8, 1);
 
             // Setup shader.
 
@@ -113,24 +109,17 @@ namespace Sandprints
         public void Update()
         {
             if (FollowTarget != null) this.transform.position = FollowTarget.position;
-            ObjectCam.orthographicSize = OrthographicSize;
-            TerrainCam.orthographicSize = OrthographicSize;
+            ObjectCam.orthographicSize = CamOrthographicSize;
+            TerrainCam.orthographicSize = CamOrthographicSize;
             Shader.SetGlobalVector("_SandprintsCamPos", TerrainCam.transform.position);
-            Shader.SetGlobalFloat("_SandprintsCamOrthoSize", OrthographicSize);
+            Shader.SetGlobalFloat("_SandprintsCamOrthoSize", CamOrthographicSize);
 
             CommandBuffer cmd = CommandBufferPool.Get();
 
-            // Add new indent marks.
-            // Current indent map --> indent map.
-            //indentComputeShader.Dispatch(_mainKernel, rtWidth / 16, rtHeight / 16, 1);
+            // Process CurrentIndentRT, puts the updated result in IndentRT.
+            // Fade out existing indent pixels, add new indent pixels.
             cmd.DispatchCompute(_dynamicsComputeShader, _mainKernel, RTWidth / 16, RTHeight / 16, 1);
-            cmd.Blit(_indentRT, _currentIndentRT);
-
-            _dynamicsComputeShader.SetFloat("DeltaTime", Time.deltaTime);
-
-            //// Fade existing indent marks.
-            //// Current indent map --> indent map.
-            cmd.DispatchCompute(_dynamicsComputeShader, _fadeKernel, RTWidth / 16, RTHeight / 16, 1);
+            // Push the updated result back to CurrentIndentRT to prepare for the next frame.
             cmd.Blit(_indentRT, _currentIndentRT);
 
             cmd.Blit(_currentIndentRT, _finalRT);
