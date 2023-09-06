@@ -52,12 +52,22 @@ Shader "NekoLabs/Sandprints/IndentMapPostProcess"
             float4 frag_downsample(Varyings i) : SV_TARGET
             {
                 float4 offset = _MainTex_TexelSize.xyxy * float4(-1, -1, 1, 1);
-                float4 o = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv) * 4;
-                o += SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv + offset.xy);
-                o += SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv + offset.xw);
-                o += SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv + offset.zy);
-                o += SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv + offset.zw);
-                return o / 8;
+                float r = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv).r * 4;
+                float g = r;
+                r += SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv + offset.xy).r;
+                r += SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv + offset.xw).r;
+                r += SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv + offset.zy).r;
+                r += SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv + offset.zw).r;
+
+                float4 rimOffset = _MainTex_TexelSize.xyxy * float4(-1, -1, 1, 1) * 3;
+                g += SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv + rimOffset.xy).r;
+                g += SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv + rimOffset.xw).r;
+                g += SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv + rimOffset.zy).r;
+                g += SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv + rimOffset.zw).r;
+                g = r > 0.0 ? 0.0 : g;
+                g = g > 0.0 ? 1.0 : 0.0;
+
+                return float4(r / 8, g / 8, 0, 0);
             }
             ENDHLSL
         }
@@ -76,15 +86,16 @@ Shader "NekoLabs/Sandprints/IndentMapPostProcess"
             float4 frag_upsample(Varyings i) : SV_TARGET
             {
                 float4 offset = _MainTex_TexelSize.xyxy * float4(-1, -1, 1, 1);
-                float4 o = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv + float2(offset.x, 0));
-                o += SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv + float2(offset.z, 0));
-                o += SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv + float2(0, offset.y));
-                o += SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv + float2(0, offset.w));
-                o += SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv + offset.xy / 2.0) * 2;
-                o += SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv + offset.xw / 2.0) * 2;
-                o += SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv + offset.zy / 2.0) * 2;
-                o += SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv + offset.zw / 2.0) * 2;
-                return o / 12;
+                float2 rg;
+                rg = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv + float2(offset.x, 0)).rg;
+                rg += SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv + float2(offset.z, 0)).rg;
+                rg += SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv + float2(0, offset.y)).rg;
+                rg += SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv + float2(0, offset.w)).rg;
+                rg += SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv + offset.xy / 2.0).rg * 2;
+                rg += SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv + offset.xw / 2.0).rg * 2;
+                rg += SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv + offset.zy / 2.0).rg * 2;
+                rg += SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv + offset.zw / 2.0).rg * 2;
+                return float4(rg / 12, 0, 0);
             }
             ENDHLSL
         }

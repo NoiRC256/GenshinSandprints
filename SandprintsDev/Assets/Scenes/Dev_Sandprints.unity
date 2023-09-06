@@ -1220,7 +1220,7 @@ MonoBehaviour:
   RTDepth: 8
   _dynamicsComputeShader: {fileID: 7200000, guid: fbb84465fb40921449963ac6b63889b7,
     type: 3}
-  RecoverySpeed: 0.01
+  RecoverySpeed: 0
   DynamicsSimulationRate: 0
   RTWidth: 1024
   RTHeight: 1024

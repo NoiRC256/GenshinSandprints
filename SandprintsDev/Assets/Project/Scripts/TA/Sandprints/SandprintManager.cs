@@ -59,13 +59,13 @@ namespace Sandprints
         private RenderTexture _finalRT;
         private int _mainKernel;
         private float _worldToTextureFactor;
-        private RenderTexture[] _blurBuffer1;
-        private RenderTexture[] _blurBuffer2;
+        private RenderTexture[] _blurDownsampleBuffer;
+        private RenderTexture[] _blurUpsampleBuffer;
 
         private void Awake()
         {
-            _blurBuffer1 = new RenderTexture[BlurIterations];
-            _blurBuffer2 = new RenderTexture[BlurIterations];
+            _blurDownsampleBuffer = new RenderTexture[BlurIterations];
+            _blurUpsampleBuffer = new RenderTexture[BlurIterations];
 
             // Setup render textures.
             _worldToTextureFactor = RTWidth / (CamOrthographicSize * 2f);
@@ -130,20 +130,21 @@ namespace Sandprints
             cmd.Blit(_indentRT, _currentIndentRT);
 
             // Post processing.
-            RenderTexture prefilterRT = RenderTexture.GetTemporary(RTWidth / 2, RTHeight / 2, 0, RenderTextureFormat.Default);
+            // Add green rim and blur.
+            RenderTexture prefilterRT = RenderTexture.GetTemporary(RTWidth / 2, RTHeight / 2, 0, RenderTextureFormat.RFloat);
             cmd.Blit(_currentIndentRT, prefilterRT);
             RenderTexture last = prefilterRT;
             for (int level = 0; level < BlurIterations; level++)
             {
-                _blurBuffer1[level] = RenderTexture.GetTemporary(last.width / 2, last.height / 2, 0, RenderTextureFormat.Default);
-                cmd.Blit(last, _blurBuffer1[level], SandprintsPostProcessMat, 0);
-                last = _blurBuffer1[level];
+                _blurDownsampleBuffer[level] = RenderTexture.GetTemporary(last.width / 2, last.height / 2, 0, RenderTextureFormat.RGFloat);
+                cmd.Blit(last, _blurDownsampleBuffer[level], SandprintsPostProcessMat, 0);
+                last = _blurDownsampleBuffer[level];
             }
             for (int level = BlurIterations - 1; level >= 0; level--)
             {
-                _blurBuffer2[level] = RenderTexture.GetTemporary(last.width * 2, last.height * 2, 0, RenderTextureFormat.Default);
-                cmd.Blit(last, _blurBuffer2[level], SandprintsPostProcessMat, 1);
-                last = _blurBuffer2[level];
+                _blurUpsampleBuffer[level] = RenderTexture.GetTemporary(last.width * 2, last.height * 2, 0, RenderTextureFormat.RGFloat);
+                cmd.Blit(last, _blurUpsampleBuffer[level], SandprintsPostProcessMat, 1);
+                last = _blurUpsampleBuffer[level];
             }
             cmd.Blit(last, _finalRT);
 
@@ -153,15 +154,15 @@ namespace Sandprints
 
             for (int i = 0; i < BlurIterations; i++)
             {
-                if (_blurBuffer1[i] != null)
+                if (_blurDownsampleBuffer[i] != null)
                 {
-                    RenderTexture.ReleaseTemporary(_blurBuffer1[i]);
-                    _blurBuffer1[i] = null;
+                    RenderTexture.ReleaseTemporary(_blurDownsampleBuffer[i]);
+                    _blurDownsampleBuffer[i] = null;
                 }
-                if (_blurBuffer2[i] != null)
+                if (_blurUpsampleBuffer[i] != null)
                 {
-                    RenderTexture.ReleaseTemporary(_blurBuffer2[i]);
-                    _blurBuffer2[i] = null;
+                    RenderTexture.ReleaseTemporary(_blurUpsampleBuffer[i]);
+                    _blurUpsampleBuffer[i] = null;
                 }
             }
             RenderTexture.ReleaseTemporary(prefilterRT);

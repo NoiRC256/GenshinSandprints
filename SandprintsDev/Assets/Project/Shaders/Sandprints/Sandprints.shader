@@ -1,46 +1,48 @@
-Shader "NekoLabs/Sandprints/Lit" {
-    Properties{
+Shader "NekoLabs/Sandprints/Lit"
+{
+    Properties
+    {
         [Header(Main)]
-        _Noise("Ground Noise", 2D) = "gray" {}
-        _NoiseScale("Ground Noise Scale", Range(0,2)) = 0.1
-        _NoiseWeight("Ground Noise Weight", Range(0,2)) = 0.1
-        [HDR]_ShadowColor("Ground Shadow Color", Color) = (0.5,0.5,0.5,1)
+        _Noise ("Ground Noise", 2D) = "gray" { }
+        _NoiseScale ("Ground Noise Scale", Range(0, 2)) = 0.1
+        _NoiseWeight ("Ground Noise Weight", Range(0, 2)) = 0.1
+        [HDR]_ShadowColor ("Ground Shadow Color", Color) = (0.5, 0.5, 0.5, 1)
         
         [Space]
         [Header(Tesselation)]
-        _MinTessDistance("Min Tessellation Distance", Float) = 10
-        _MaxTessDistance("Max Tessellation Distance", Float) = 20
-        _Tess("Tessellation", Range(1,64)) = 20
+        _MinTessDistance ("Min Tessellation Distance", Float) = 10
+        _MaxTessDistance ("Max Tessellation Distance", Float) = 20
+        _Tess ("Tessellation", Range(1, 64)) = 20
         
         [Space]
         [Header(Ground)]
-        [HDR]_Color("Base Color", Color) = (0.5,0.5,0.5,1)
-        [HDR]_PathColorIn("Indent Color In", Color) = (0.5,0.5,0.7,1)
-        [HDR]_PathColorOut("Indent Color Out", Color) = (0.5,0.5,0.7,1)
-        [HDR]_TrailRimColor("Indent Rim Color", Color) = (1,1,1,1)
-        _PathBlending("Indent Blending", Range(0,10)) = 0.3
-        _TrailRimBlending("Indent Rim Blending", Range(0,10)) = 0.3
-        _MainTex("Main Texture", 2D) = "white" {}
-        _SnowHeight("Ground Height", Range(0,1)) = 0.3
-        _SnowDepth("Trail Depth", Range(0,1)) = 1
-        _TrailRimHeight("Trail Rim Height", Range(0,1)) = 0.3
-        _SnowTextureOpacity("Main Texture Opacity", Range(0,2)) = 0.3
-        _SnowTextureScale("Main Texture Scale", Range(0,2)) = 0.3
+        [HDR]_Color ("Base Color", Color) = (0.5, 0.5, 0.5, 1)
+        [HDR]_PathColorIn ("Indent Color In", Color) = (0.5, 0.5, 0.7, 1)
+        [HDR]_PathColorOut ("Indent Color Out", Color) = (0.5, 0.5, 0.7, 1)
+        [HDR]_TrailRimColor ("Indent Rim Color", Color) = (1, 1, 1, 1)
+        _PathBlending ("Indent Blending", Range(0, 10)) = 0.3
+        _TrailRimBlending ("Indent Rim Blending", Range(0, 10)) = 0.3
+        _MainTex ("Main Texture", 2D) = "white" { }
+        _SnowHeight ("Ground Height", Range(0, 1)) = 0.3
+        _SnowDepth ("Trail Depth", Range(0, 1)) = 1
+        _TrailRimHeight ("Trail Rim Height", Range(0, 1)) = 0.3
+        _SnowTextureOpacity ("Main Texture Opacity", Range(0, 2)) = 0.3
+        _SnowTextureScale ("Main Texture Scale", Range(0, 2)) = 0.3
         
         [Space]
         [Header(Sparkles)]
-        _SparkleScale("Sparkle Scale", Range(0,10)) = 10
-        _SparkCutoff("Sparkle Cutoff", Range(0,10)) = 0.8
-        _SparkleNoise("Sparkle Noise", 2D) = "gray" {}
+        _SparkleScale ("Sparkle Scale", Range(0, 10)) = 10
+        _SparkCutoff ("Sparkle Cutoff", Range(0, 10)) = 0.8
+        _SparkleNoise ("Sparkle Noise", 2D) = "gray" { }
         
         [Space]
         [Header(Rim)]
-        _RimPower("Rim Power", Range(0,20)) = 20
-        [HDR]_RimColor("Rim Color Snow", Color) = (0.5,0.5,0.5,1)
+        _RimPower ("Rim Power", Range(0, 20)) = 20
+        [HDR]_RimColor ("Rim Color Snow", Color) = (0.5, 0.5, 0.5, 1)
 
         [Header(Shadow mapping)]
-        _NormalSmoothThreshold("Normal Smooth Threshold", Float) = 0.01
-        _ReceiveShadowMappingPosOffset("Receive Shadow Offset", Float) = 0
+        _NormalSmoothThreshold ("Normal Smooth Threshold", Float) = 0.01
+        _ReceiveShadowMappingPosOffset ("Receive Shadow Offset", Float) = 0
     }
     HLSLINCLUDE
     
@@ -77,10 +79,12 @@ Shader "NekoLabs/Sandprints/Lit" {
     }
     ENDHLSL
     
-    SubShader{
-        Tags{ "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline"}
+    SubShader
+    {
+        Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" }
         
-        Pass{
+        Pass
+        {
             Tags { "LightMode" = "UniversalForward" }
             
             HLSLPROGRAM
@@ -103,7 +107,8 @@ Shader "NekoLabs/Sandprints/Lit" {
                 float _ReceiveShadowMappingPosOffset;
             CBUFFER_END
 
-            half4 frag(Varyings IN) : SV_Target{
+            half4 frag(Varyings IN) : SV_Target
+            {
                 
                 // Calculate local uv.
                 float3 vertexWorldPosition = mul(unity_ObjectToWorld, IN.vertex).xyz;
@@ -112,12 +117,13 @@ Shader "NekoLabs/Sandprints/Lit" {
                 uv += 0.5;
                 // Flip uv since indent depth is captured from underneath.
                 uv.x = 1.0 - uv.x;
+                float3 normal = normalize(IN.normal);
                 
                 // Read indent effect render texture.
                 float4 indentRT = tex2D(_SandprintsRT, uv);
                 // Smoothstep mask to prevent bleeding.
-                indentRT *=  smoothstep(0.99, 0.9, uv.x) * smoothstep(0.99, 0.9,1- uv.x);
-                indentRT *=  smoothstep(0.99, 0.9, uv.y) * smoothstep(0.99, 0.9,1- uv.y);
+                // indentRT *=  smoothstep(0.99, 0.9, uv.x) * smoothstep(0.99, 0.9,1- uv.x);
+                // indentRT *=  smoothstep(0.99, 0.9, uv.y) * smoothstep(0.99, 0.9,1- uv.y);
                 //indentRT.r = indentRT.r > 0.5 ? 1.0 : 0.0;
                 
                 // worldspace Noise texture
@@ -127,11 +133,11 @@ Shader "NekoLabs/Sandprints/Lit" {
                 float3 snowtexture = tex2D(_MainTex, IN.worldPos.xz * _SnowTextureScale).rgb;
                 
                 //lerp between snow color and snow texture
-                float3 snowTex = lerp(_Color.rgb,snowtexture * _Color.rgb, _SnowTextureOpacity);
+                float3 snowTex = lerp(_Color.rgb, snowtexture * _Color.rgb, _SnowTextureOpacity);
                 
                 //lerp the colors using the indentRT
                 float3 path = lerp(_PathColorOut.rgb * indentRT.r, _PathColorIn.rgb, saturate(indentRT.r * _PathBlending));
-                float3 trailRim = lerp(_TrailRimColor.rgb, _TrailRimColor.rgb, saturate(indentRT.g * _TrailRimBlending));
+                float3 trailRim = lerp(_TrailRimColor.rgb * indentRT.g, _TrailRimColor.rgb, saturate(indentRT.g * _TrailRimBlending));
                 float3 indentMainColors = lerp(snowTex, path, saturate(indentRT.r));
                 float3 indentRimMainColors = lerp(snowTex, trailRim, saturate(indentRT.g - indentRT.r));
                 float3 mainColors = lerp(indentMainColors, indentRimMainColors, saturate(indentRT.g * 2.0));
@@ -142,7 +148,7 @@ Shader "NekoLabs/Sandprints/Lit" {
                 // float3 shadowTestPosWS = IN.worldPos + mainLight.direction * _ReceiveShadowMappingPosOffset;
                 // half4 shadowCoord = TransformWorldToShadowCoord(shadowTestPosWS);
                 // mainLight.shadowAttenuation = MainLightRealtimeShadow(shadowCoord);
-                // shadow = mainLight.shadowAttenuation; 
+                // shadow = mainLight.shadowAttenuation;
 
                 Light mainLight = GetMainLight();
                 float shadow = 1;
@@ -162,21 +168,22 @@ Shader "NekoLabs/Sandprints/Lit" {
                 // extra point lights support
                 float3 extraLights;
                 int pixelLightCount = GetAdditionalLightsCount();
-                for (int j = 0; j < pixelLightCount; ++j) {
+                for (int j = 0; j < pixelLightCount; ++j)
+                {
                     Light light = GetAdditionalLight(j, IN.worldPos, half4(1, 1, 1, 1));
                     float3 attenuatedLightColor = light.color * (light.distanceAttenuation * light.shadowAttenuation);
-                    extraLights += attenuatedLightColor;			
+                    extraLights += attenuatedLightColor;
                 }
                 
-                float4 litMainColors = float4(mainColors,1) ;
+                float4 litMainColors = float4(mainColors, 1) ;
                 extraLights *= litMainColors.rgb;
                 // add in the sparkles
                 float sparklesStatic = tex2D(_SparkleNoise, IN.worldPos.xz * _SparkleScale).r;
-                float cutoffSparkles = step(_SparkCutoff,sparklesStatic);				
-                litMainColors += cutoffSparkles  *saturate(1- (indentRT.r * 2)) * 4;
+                float cutoffSparkles = step(_SparkCutoff, sparklesStatic);
+                litMainColors += cutoffSparkles * saturate(1 - (indentRT.r * 2)) * 4;
                 
                 // add rim light
-                half rim = 1.0 - dot((IN.viewDir), IN.normal) * topdownNoise.r;
+                half rim = 1.0 - dot((IN.viewDir), normal) * topdownNoise.r;
                 litMainColors += _RimColor * pow(abs(rim), _RimPower);
                 
                 // ambient and mainlight colors added
@@ -185,22 +192,20 @@ Shader "NekoLabs/Sandprints/Lit" {
                 extraColors.a = 1;
                 
                 // colored shadows
-                float3 coloredShadows = (shadow + (_ShadowColor.rgb * (1-shadow)));
+                float3 coloredShadows = (shadow + (_ShadowColor.rgb * (1 - shadow)));
                 litMainColors.rgb = litMainColors.rgb * mainLight.color * (coloredShadows);
                 
                 // everything together
-                float4 final = litMainColors + extraColors + float4(extraLights,0);
+                float4 final = litMainColors + extraColors + float4(extraLights, 0);
                 // add in fog
                 final.rgb = MixFog(final.rgb, IN.fogFactor);
                 return final;
 
                 half4 color = 0;
-                color.rgb = IN.normal;
+                color.rgb = normal;
                 return color;
-                
             }
             ENDHLSL
-            
         }
         
         // casting shadows is a little glitchy, I've turned it off, but maybe in future urp versions it works better?
@@ -226,7 +231,8 @@ Shader "NekoLabs/Sandprints/Lit" {
             #pragma fragment frag
             // A custom keyword to modify logic during the shadow caster pass
             
-            half4 frag(Varyings IN) : SV_Target{
+            half4 frag(Varyings IN) : SV_Target
+            {
                 return 0;
             }
             

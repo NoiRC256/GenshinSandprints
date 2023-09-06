@@ -35,7 +35,7 @@ void CSMain(uint3 id : SV_DispatchThreadID)
     float terrainDepth = (1.0 - TerrainDepthMap[uint2(id.x, Height - id.y)].r);
     // Calculate indent depth by normalizing object depth based on terrain depth.
     float indentDepth = clamp((objectDepth - terrainDepth) * CamDistance, 0, 1);
-    curResult = max(curResult, indentDepth);
+    curResult = clamp(max(curResult, indentDepth), 0, 1);
     
     Result[id.xy] = float4(curResult, 0, 0, 0);
 }

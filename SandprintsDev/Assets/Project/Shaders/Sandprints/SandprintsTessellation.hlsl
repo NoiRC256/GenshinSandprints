@@ -1,16 +1,16 @@
 //#ifndef TESSELLATION_CGINC_INCLUDED
 //#define TESSELLATION_CGINC_INCLUDED
 #if defined(SHADER_API_D3D11) || defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE) || defined(SHADER_API_VULKAN) || defined(SHADER_API_METAL) || defined(SHADER_API_PSSL)
-    #define UNITY_CAN_COMPILE_TESSELLATION 1
-    #   define UNITY_domain                 domain
-    #   define UNITY_partitioning           partitioning
-    #   define UNITY_outputtopology         outputtopology
-    #   define UNITY_patchconstantfunc      patchconstantfunc
-    #   define UNITY_outputcontrolpoints    outputcontrolpoints
+#define UNITY_CAN_COMPILE_TESSELLATION 1
+#   define UNITY_domain                 domain
+#   define UNITY_partitioning           partitioning
+#   define UNITY_outputtopology         outputtopology
+#   define UNITY_patchconstantfunc      patchconstantfunc
+#   define UNITY_outputcontrolpoints    outputcontrolpoints
 #endif
 
 struct Varyings
-{       
+{
     float3 worldPos : TEXCOORD1;
     float3 normal : NORMAL;
     float4 vertex : SV_Position;
@@ -23,7 +23,7 @@ struct Attributes
 {
     float4 vertex : POSITION;
     float3 normal : NORMAL;
-    float2 uv : TEXCOORD0;    
+    float2 uv : TEXCOORD0;
 };
 
 float _Tess;
@@ -40,14 +40,14 @@ struct ControlPoint
 {
     float4 vertex : INTERNALTESSPOS;
     float2 uv : TEXCOORD0;
-    float3 normal : NORMAL;   
+    float3 normal : NORMAL;
 };
 
 uniform float3 _SandprintsCamPos;
 uniform sampler2D _SandprintsRT;
 uniform float4 _SandprintsRT_TexelSize;
 uniform float _SandprintsCamOrthoSize;
-sampler2D  _Noise;
+sampler2D _Noise;
 float _NoiseScale, _SnowHeight, _NoiseWeight, _SnowDepth, _TrailRimHeight;
 float _NormalSmoothThreshold;
 
@@ -74,12 +74,12 @@ float4 GetShadowPositionHClip(Attributes input, float3 normal)
 [UNITY_outputtopology("triangle_cw")]
 [UNITY_partitioning("fractional_odd")]
 [UNITY_patchconstantfunc("patchConstantFunction")]
-ControlPoint hull(InputPatch<ControlPoint, 3> patch, uint id : SV_OutputControlPointID)
+ControlPoint hull(InputPatch < ControlPoint, 3 > patch, uint id : SV_OutputControlPointID)
 {
     return patch[id];
 }
 
-TessellationFactors UnityCalcTriEdgeTessFactors (float3 triVertexFactors)
+TessellationFactors UnityCalcTriEdgeTessFactors(float3 triVertexFactors)
 {
     TessellationFactors tess;
     tess.edge[0] = 0.5 * (triVertexFactors.y + triVertexFactors.z);
@@ -106,7 +106,8 @@ TessellationFactors DistanceBasedTess(float4 v0, float4 v1, float4 v2, float min
     return UnityCalcTriEdgeTessFactors(f);
 }
 
-TessellationFactors FixedTess(float tess){
+TessellationFactors FixedTess(float tess)
+{
     float3 f = (tess, tess, tess);
     return UnityCalcTriEdgeTessFactors(f);
 }
@@ -114,7 +115,7 @@ TessellationFactors FixedTess(float tess){
 /**
 2. Hull: Patch Constant.
 **/
-TessellationFactors patchConstantFunction(InputPatch<ControlPoint, 3> patch)
+TessellationFactors patchConstantFunction(InputPatch < ControlPoint, 3 > patch)
 {
     float minDist = _MinTessDistance;
     float maxDist = _MaxTessDistance;
@@ -123,59 +124,6 @@ TessellationFactors patchConstantFunction(InputPatch<ControlPoint, 3> patch)
     f = DistanceBasedTess(patch[0].vertex, patch[1].vertex, patch[2].vertex, minDist, maxDist, _Tess);
     //f = FixedTess(_Tess);
     return f;
-}
-
-float3 normalsFromHeight(sampler2D heightMap, float4 uv, float texelSize)
-{
-    float4 h;
-    float2 s = tex2Dlod(heightMap, uv + float4(texelSize * float2(0,-1), 0, 0));
-    float2 w = tex2Dlod(heightMap, uv + float4(texelSize * float2(-1,0), 0, 0));
-    float2 e = tex2Dlod(heightMap, uv + float4(texelSize * float2(1,0), 0, 0));
-    float2 n = tex2Dlod(heightMap, uv + float4(texelSize * float2(0,1), 0, 0));
-    h[0] = s.r - s.g;
-    h[1] = w.r - w.g;
-    h[2] = e.r - e.g;
-    h[3] = n.r - n.g;
-    
-    float3 normal;
-    float nsDiff = -(h[0] - h[3]);
-    float weDiff = (h[1] - h[2]);
-    // North south diff.
-    normal.z = abs(nsDiff) > _NormalSmoothThreshold ? nsDiff : 0.0;
-    // West east diff.
-    normal.x = abs(weDiff) > _NormalSmoothThreshold ? weDiff : 0.0;
-    normal.y = 2 * texelSize;
-    
-    return normalize(normal);
-}
-
-float3 normalsFromHeight2(sampler2D heightMap, float4 uv, float texelSize, float3 inputNormal)
-{
-    float4 h;
-    float me = tex2Dlod(heightMap, uv).x;
-    float3 n = tex2Dlod(heightMap, uv + float4(texelSize * float2(0,3), 0, 0));
-    float3 s = tex2Dlod(heightMap, uv + float4(texelSize * float2(3,0), 0, 0));
-    float3 e = tex2Dlod(heightMap, uv + float4(texelSize * float2(0,-3), 0, 0));
-    float3 w = tex2Dlod(heightMap, uv + float4(texelSize * float2(-3,0), 0, 0));
-
-    float3 norm = float3(1, 1, 1);
-    float3 temp = norm;
-    if(norm.x == 1){
-        temp.y += 0.5;
-        }else{
-        temp.x += 0.5;
-    }
-
-    //form a basis with norm being one of the axes:
-    float3 perp1 = normalize(cross(inputNormal,temp));
-    float3 perp2 = normalize(cross(inputNormal,perp1));
-
-    //use the basis to move the normal i its own space by the offset
-    float3 normalOffset = -1 * (((n - me) - (s - me)) * perp1 + ((e - me) - (w - me)) * perp2);
-    norm += normalOffset;
-    norm = normalize(norm);
-
-    return norm;
 }
 
 Varyings vert(Attributes input)
@@ -193,8 +141,8 @@ Varyings vert(Attributes input)
     // Read indent effect render texture.
     float4 indentRT = tex2Dlod(_SandprintsRT, float4(uv, 0, 0));
     // Smoothstep mask to prevent bleeding.
-    indentRT *=  smoothstep(0.99, 0.9, uv.x) * smoothstep(0.99, 0.9,1- uv.x);
-    indentRT *=  smoothstep(0.99, 0.9, uv.y) * smoothstep(0.99, 0.9,1- uv.y);
+    // indentRT *=  smoothstep(0.99, 0.9, uv.x) * smoothstep(0.99, 0.9,1- uv.x);
+    // indentRT *=  smoothstep(0.99, 0.9, uv.y) * smoothstep(0.99, 0.9,1- uv.y);
     //indentRT.r = indentRT.r > 0.5 ? 1.0 : 0.0;
     
     // worldspace noise texture
@@ -203,14 +151,13 @@ Varyings vert(Attributes input)
     
     // move vertices up where snow is
     float3 normalCoef = SafeNormalize(input.normal);
-    float3 snowHeightCoef = saturate(( _SnowHeight) + (SnowNoise * _NoiseWeight));
+    float3 snowHeightCoef = saturate((_SnowHeight) + (SnowNoise * _NoiseWeight));
 
     input.vertex.y -= 1.0;
     input.vertex.xyz += normalCoef * saturate(1 - min(indentRT.r, _SnowDepth)) + saturate(normalCoef * snowHeightCoef);
     input.vertex.xyz += normalCoef * saturate(indentRT.g * _TrailRimHeight);
 
-    float3 normal = normalsFromHeight(_SandprintsRT, float4(uv.xy, 0, 0), _SandprintsRT_TexelSize.xy);
-    //float3 normal = input.normal;
+    float3 normal = input.normal;
 
     // transform to clip space
     #ifdef SHADERPASS_SHADOWCASTER
@@ -220,7 +167,7 @@ Varyings vert(Attributes input)
     #endif
     
     //outputs
-    output.worldPos =  mul(unity_ObjectToWorld, input.vertex).xyz;
+    output.worldPos = mul(unity_ObjectToWorld, input.vertex).xyz;
     output.normal = normal;
     output.uv = input.uv;
     output.fogFactor = ComputeFogFactor(output.vertex.z);
@@ -231,7 +178,7 @@ Varyings vert(Attributes input)
 3. Domain.
 **/
 [UNITY_domain("tri")]
-Varyings domain(TessellationFactors factors, OutputPatch<ControlPoint, 3> patch, float3 barycentricCoordinates : SV_DomainLocation)
+Varyings domain(TessellationFactors factors, OutputPatch < ControlPoint, 3 > patch, float3 barycentricCoordinates : SV_DomainLocation)
 {
     Attributes v;
     
