@@ -3,18 +3,13 @@
 
 // Create a RenderTexture with enableRandomWrite flag and set it
 // with cs.SetTexture
-RWTexture2D<float4> Result;
-Texture2D<float4> CurResult;
+Texture2D<float4> InputIndentMap;
 Texture2D<float4> ObjectDepthMap;
-Texture2D<float4> TerrainDepthMap;
-
-int Width;
-int Height;
-float CamDistance = 9.9f;
+RWTexture2D<float4> OutputIndentMap;
 
 float DeltaTime = 0.02f;
-float RecoverySpeed;
-float WorldToTextureVecFactor;
+float RecoverySpeed = 0.0f;
+float IndentValueDeltaHeightOffset = 0.0f;
 
 float Remap(float value, float from1, float from2, float to1, float to2)
 {
@@ -24,29 +19,13 @@ float Remap(float value, float from1, float from2, float to1, float to2)
 [numthreads(16, 16, 1)]
 void CSMain(uint3 id : SV_DispatchThreadID)
 {
-    float curResult = CurResult[id.xy].r;
-
+    float curDepth = InputIndentMap[id.xy].r;
     // Fade out indent pixels.
     float rate = DeltaTime * RecoverySpeed;
-    curResult = float(max(curResult.r - rate, 0.0));
-
-    // Add new indent pixels.
-    float objectDepth = ObjectDepthMap[id.xy].r;
-    float terrainDepth = (1.0 - TerrainDepthMap[uint2(id.x, Height - id.y)].r);
-    // Calculate indent depth by normalizing object depth based on terrain depth.
-    float indentDepth = clamp((objectDepth - terrainDepth) * CamDistance, 0, 1);
-    curResult = clamp(max(curResult, indentDepth), 0, 1);
-    
-    Result[id.xy] = float4(curResult, 0, 0, 0);
+    curDepth = max(curDepth - rate, 0.0);
+    curDepth = curDepth > 0.0 ? curDepth + IndentValueDeltaHeightOffset : curDepth;
+    float depth = ObjectDepthMap[id.xy].r;
+    curDepth = clamp(max(curDepth, depth), 0, 1);
+    OutputIndentMap[id.xy] = float4(curDepth, 0, 0, 0);
 }
-
-// [numthreads(16, 16, 1)]
-// void CSFade(uint3 id : SV_DispatchThreadID)
-// {
-//     // Fade out current result over time.
-//     float4 curResult = CurResult[id.xy];
-//     float rate = DeltaTime * RecoverySpeed * max(2.0 * curResult.r, 1.0);
-//     float resultR = float(max(curResult.r - rate, 0.0));
-//     Result[id.xy] = float4(resultR, 0, 0, 0);
-// }
 

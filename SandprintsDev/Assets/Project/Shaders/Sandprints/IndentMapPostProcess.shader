@@ -51,7 +51,7 @@ Shader "NekoLabs/Sandprints/IndentMapPostProcess"
 
             float4 frag_downsample(Varyings i) : SV_TARGET
             {
-                float4 offset = _MainTex_TexelSize.xyxy * float4(-1, -1, 1, 1);
+                float4 offset = _MainTex_TexelSize.xyxy * float4(-0.5, -0.5, 0.5, 0.5);
                 float r = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv).r * 4;
                 float g = r;
                 r += SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv + offset.xy).r;
@@ -85,7 +85,7 @@ Shader "NekoLabs/Sandprints/IndentMapPostProcess"
 
             float4 frag_upsample(Varyings i) : SV_TARGET
             {
-                float4 offset = _MainTex_TexelSize.xyxy * float4(-1, -1, 1, 1);
+                float4 offset = _MainTex_TexelSize.xyxy * float4(-0.5, -0.5, 0.5, 0.5);
                 float2 rg;
                 rg = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv + float2(offset.x, 0)).rg;
                 rg += SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv + float2(offset.z, 0)).rg;

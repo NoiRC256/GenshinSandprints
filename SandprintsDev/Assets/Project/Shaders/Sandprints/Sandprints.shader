@@ -3,6 +3,12 @@ Shader "NekoLabs/Sandprints/Lit"
     Properties
     {
         [Header(Main)]
+        [MainTexture] _MainTex ("Base Map (RGB) Smoothness / Alpha (A)", 2D) = "white" { }
+        [HDR] _BaseColor ("Base Color", Color) = (0.5, 0.5, 0.5, 1)
+        [Toggle(_ALPHATEST_ON)] _AlphaTestToggle ("Alpha Clipping", Float) = 0
+        _Cutoff ("Alpha Cutoff", Float) = 0.5
+
+        [Header(Main)]
         _Noise ("Ground Noise", 2D) = "gray" { }
         _NoiseScale ("Ground Noise Scale", Range(0, 2)) = 0.1
         _NoiseWeight ("Ground Noise Weight", Range(0, 2)) = 0.1
@@ -16,18 +22,18 @@ Shader "NekoLabs/Sandprints/Lit"
         
         [Space]
         [Header(Ground)]
-        [HDR]_Color ("Base Color", Color) = (0.5, 0.5, 0.5, 1)
         [HDR]_PathColorIn ("Indent Color In", Color) = (0.5, 0.5, 0.7, 1)
         [HDR]_PathColorOut ("Indent Color Out", Color) = (0.5, 0.5, 0.7, 1)
         [HDR]_TrailRimColor ("Indent Rim Color", Color) = (1, 1, 1, 1)
         _PathBlending ("Indent Blending", Range(0, 10)) = 0.3
         _TrailRimBlending ("Indent Rim Blending", Range(0, 10)) = 0.3
-        _MainTex ("Main Texture", 2D) = "white" { }
+
+
         _SnowHeight ("Ground Height", Range(0, 1)) = 0.3
         _SnowDepth ("Trail Depth", Range(0, 1)) = 1
         _TrailRimHeight ("Trail Rim Height", Range(0, 1)) = 0.3
         _SnowTextureOpacity ("Main Texture Opacity", Range(0, 2)) = 0.3
-        _SnowTextureScale ("Main Texture Scale", Range(0, 2)) = 0.3
+        _MainTextureScale ("Main Texture Scale", Range(0, 2)) = 0.3
         
         [Space]
         [Header(Sparkles)]
@@ -44,32 +50,37 @@ Shader "NekoLabs/Sandprints/Lit"
         _NormalSmoothThreshold ("Normal Smooth Threshold", Float) = 0.01
         _ReceiveShadowMappingPosOffset ("Receive Shadow Offset", Float) = 0
     }
+
     HLSLINCLUDE
-    
-    // Includes
+
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
     #include "SandprintsTessellation.hlsl"
 
-    #pragma require tessellation tessHW
-    #pragma vertex TessellationVertexProgram
-    #pragma hull hull
-    #pragma domain domain
-
-    // Keywords
-    #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
-    #pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
-    #pragma multi_compile _ _SHADOWS_SOFT
-    #pragma multi_compile_fog
-
     #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
     #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
+    // Note, v11 changes this to :
+    // #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
+
     #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
     #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
     #pragma multi_compile_fragment _ _SHADOWS_SOFT
+    #pragma multi_compile _ LIGHTMAP_ON
+    #pragma multi_compile _ DIRLIGHTMAP_COMBINED
+    #pragma multi_compile _ LIGHTMAP_SHADOW_MIXING
+    #pragma multi_compile _ SHADOWS_SHADOWMASK
+    #pragma multi_compile _ _SCREEN_SPACE_OCCLUSION
+
+    #pragma multi_compile_fog
+    #pragma multi_compile_instancing
+
+    #pragma require tessellation tessHW
+    #pragma vertex TessellationVertex
+    #pragma hull TessellationHull
+    #pragma domain TessellationDomain
     
-    ControlPoint TessellationVertexProgram(Attributes v)
+    ControlPoint TessellationVertex(MyAttributes v)
     {
         ControlPoint p;
         p.vertex = v.vertex;
@@ -77,6 +88,7 @@ Shader "NekoLabs/Sandprints/Lit"
         p.normal = v.normal;
         return p;
     }
+    
     ENDHLSL
     
     SubShader
@@ -85,34 +97,37 @@ Shader "NekoLabs/Sandprints/Lit"
         
         Pass
         {
+            Name "ForwardLit"
             Tags { "LightMode" = "UniversalForward" }
             
             HLSLPROGRAM
-            // vertex happens in snowtessellation.hlsl
-            #pragma fragment frag
+
             #pragma target 4.0
-            
+
+            #pragma fragment LitPassFragment
+
             sampler2D _MainTex, _SparkleNoise;
             CBUFFER_START(UnityPerMaterial)
-                float4 _Color, _RimColor;
+                float4 _BaseMap_ST;
+                float _Cutoff;
+                float4 _BaseColor, _RimColor;
                 float _RimPower;
                 float4 _PathColorIn, _PathColorOut;
                 float4 _TrailRimColor;
                 float _PathBlending;
                 float _TrailRimBlending;
                 float _SparkleScale, _SparkCutoff;
-                float _SnowTextureOpacity, _SnowTextureScale;
+                float _SnowTextureOpacity, _MainTextureScale;
                 float4 _ShadowColor;
-                // shadow mapping
                 float _ReceiveShadowMappingPosOffset;
             CBUFFER_END
 
-            half4 frag(Varyings IN) : SV_Target
+            half4 LitPassFragment(MyVaryings IN) : SV_Target
             {
                 
                 // Calculate local uv.
-                float3 vertexWorldPosition = mul(unity_ObjectToWorld, IN.vertex).xyz;
-                float2 uv = IN.worldPos.xz - _SandprintsCamPos.xz;
+                float3 positionWS = IN.positionWS;
+                float2 uv = IN.positionWS.xz - _SandprintsCamPos.xz;
                 uv /= (_SandprintsCamOrthoSize * 2);
                 uv += 0.5;
                 // Flip uv since indent depth is captured from underneath.
@@ -120,96 +135,77 @@ Shader "NekoLabs/Sandprints/Lit"
                 float3 normal = normalize(IN.normal);
                 
                 // Read indent effect render texture.
-                float4 indentRT = tex2D(_SandprintsRT, uv);
+                float4 indentValue = tex2D(_SandprintsIndentMap, uv);
                 // Smoothstep mask to prevent bleeding.
-                // indentRT *=  smoothstep(0.99, 0.9, uv.x) * smoothstep(0.99, 0.9,1- uv.x);
-                // indentRT *=  smoothstep(0.99, 0.9, uv.y) * smoothstep(0.99, 0.9,1- uv.y);
-                //indentRT.r = indentRT.r > 0.5 ? 1.0 : 0.0;
+                // indentValue *=  smoothstep(0.99, 0.9, uv.x) * smoothstep(0.99, 0.9,1- uv.x);
+                // indentValue *=  smoothstep(0.99, 0.9, uv.y) * smoothstep(0.99, 0.9,1- uv.y);
                 
                 // worldspace Noise texture
-                float3 topdownNoise = tex2D(_Noise, IN.worldPos.xz * _NoiseScale).rgb;
+                float3 topdownNoise = tex2D(_Noise, IN.positionWS.xz * _NoiseScale).rgb;
                 
-                // worldspace Snow texture
-                float3 snowtexture = tex2D(_MainTex, IN.worldPos.xz * _SnowTextureScale).rgb;
+                // Worldspace Snow texture
+                float3 mainTexture = tex2D(_MainTex, IN.positionWS.xz * _MainTextureScale).rgb;
                 
-                //lerp between snow color and snow texture
-                float3 snowTex = lerp(_Color.rgb, snowtexture * _Color.rgb, _SnowTextureOpacity);
+                // Lerp between snow color and snow texture.
+                float3 finalMainTexture = lerp(_BaseColor.rgb, mainTexture * _BaseColor.rgb, _SnowTextureOpacity);
                 
-                //lerp the colors using the indentRT
-                float3 path = lerp(_PathColorOut.rgb * indentRT.r, _PathColorIn.rgb, saturate(indentRT.r * _PathBlending));
-                float3 trailRim = lerp(_TrailRimColor.rgb * indentRT.g, _TrailRimColor.rgb, saturate(indentRT.g * _TrailRimBlending));
-                float3 indentMainColors = lerp(snowTex, path, saturate(indentRT.r));
-                float3 indentRimMainColors = lerp(snowTex, trailRim, saturate(indentRT.g - indentRT.r));
-                float3 mainColors = lerp(indentMainColors, indentRimMainColors, saturate(indentRT.g * 2.0));
+                // Lerp the colors based on indent.
+                float3 path = lerp(_PathColorOut.rgb * indentValue.r, _PathColorIn.rgb, saturate(indentValue.r * _PathBlending));
+                float3 trailRim = lerp(_TrailRimColor.rgb * indentValue.g, _TrailRimColor.rgb, saturate(indentValue.g * _TrailRimBlending));
+                float3 indentMainColors = lerp(finalMainTexture, path, saturate(indentValue.r));
+                float3 indentRimMainColors = lerp(finalMainTexture, trailRim, saturate(indentValue.g - indentValue.r));
+                float3 mainColors = lerp(indentMainColors, indentRimMainColors, saturate(indentValue.g * 2.0));
                 
-                // lighting and shadow information
-                // float shadow = 0;
-                // Light mainLight = GetMainLight();
-                // float3 shadowTestPosWS = IN.worldPos + mainLight.direction * _ReceiveShadowMappingPosOffset;
-                // half4 shadowCoord = TransformWorldToShadowCoord(shadowTestPosWS);
-                // mainLight.shadowAttenuation = MainLightRealtimeShadow(shadowCoord);
-                // shadow = mainLight.shadowAttenuation;
-
+                // Lighting and shadows.
                 Light mainLight = GetMainLight();
-                float shadow = 1;
-                float3 shadowTestPosWS = IN.worldPos.xyz + mainLight.direction * _ReceiveShadowMappingPosOffset;
+                float shadow = 0.0;
+                float3 shadowTestPosWS = IN.positionWS.xyz + mainLight.direction * _ReceiveShadowMappingPosOffset;
                 #if _MAIN_LIGHT_SHADOWS_CASCADE || _MAIN_LIGHT_SHADOWS
                     float4 shadowCoord = TransformWorldToShadowCoord(shadowTestPosWS);
                     mainLight.shadowAttenuation = MainLightRealtimeShadow(shadowCoord);
                     shadow = mainLight.shadowAttenuation;
                 #endif
-                // #if _MAIN_LIGHT_SHADOWS_CASCADE || _MAIN_LIGHT_SHADOWS
-                //     Light mainLight = GetMainLight(shadowCoord);
-                //     shadow = mainLight.shadowAttenuation;
-                // #else
-                //     Light mainLight = GetMainLight();
-                // #endif
-                
-                // extra point lights support
+
+                float4 litMainColors = float4(mainColors, 1);
+
+                // Extra point lights.
                 float3 extraLights;
                 int pixelLightCount = GetAdditionalLightsCount();
                 for (int j = 0; j < pixelLightCount; ++j)
                 {
-                    Light light = GetAdditionalLight(j, IN.worldPos, half4(1, 1, 1, 1));
+                    Light light = GetAdditionalLight(j, IN.positionWS, half4(1, 1, 1, 1));
                     float3 attenuatedLightColor = light.color * (light.distanceAttenuation * light.shadowAttenuation);
                     extraLights += attenuatedLightColor;
                 }
-                
-                float4 litMainColors = float4(mainColors, 1) ;
                 extraLights *= litMainColors.rgb;
-                // add in the sparkles
-                float sparklesStatic = tex2D(_SparkleNoise, IN.worldPos.xz * _SparkleScale).r;
+
+                // Sparkles.
+                float sparklesStatic = tex2D(_SparkleNoise, IN.positionWS.xz * _SparkleScale).r;
                 float cutoffSparkles = step(_SparkCutoff, sparklesStatic);
-                litMainColors += cutoffSparkles * saturate(1 - (indentRT.r * 2)) * 4;
+                litMainColors += cutoffSparkles * saturate(1 - (indentValue.r * 2)) * 4;
                 
-                // add rim light
+                // Rim light.
                 half rim = 1.0 - dot((IN.viewDir), normal) * topdownNoise.r;
                 litMainColors += _RimColor * pow(abs(rim), _RimPower);
                 
-                // ambient and mainlight colors added
+                // Ambient and main light colors.
                 half4 extraColors;
                 extraColors.rgb = litMainColors.rgb * mainLight.color.rgb * (shadow + unity_AmbientSky.rgb);
                 extraColors.a = 1;
                 
-                // colored shadows
+                // Shadow colors.
                 float3 coloredShadows = (shadow + (_ShadowColor.rgb * (1 - shadow)));
                 litMainColors.rgb = litMainColors.rgb * mainLight.color * (coloredShadows);
                 
-                // everything together
+                // Final color.
                 float4 final = litMainColors + extraColors + float4(extraLights, 0);
-                // add in fog
                 final.rgb = MixFog(final.rgb, IN.fogFactor);
                 return final;
-
-                half4 color = 0;
-                color.rgb = normal;
-                return color;
             }
+
             ENDHLSL
         }
         
-        // casting shadows is a little glitchy, I've turned it off, but maybe in future urp versions it works better?
-        // Shadow Casting Pass
         Pass
         {
             Name "ShadowCaster"
@@ -219,23 +215,14 @@ Shader "NekoLabs/Sandprints/Lit"
             Cull Off
             
             HLSLPROGRAM
-            #pragma target 3.0
-            
-            // Support all the various light  ypes and shadow paths
-            #pragma multi_compile_shadowcaster
-            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
-            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
-            
-            // Register our functions
-            
-            #pragma fragment frag
-            // A custom keyword to modify logic during the shadow caster pass
-            
-            half4 frag(Varyings IN) : SV_Target
+
+            #pragma fragment ShadowCasterPassFragment;
+
+            half4 ShadowCasterPassFragment(MyVaryings IN) : SV_TARGET
             {
-                return 0;
+                return 0.0;
             }
-            
+
             ENDHLSL
         }
     }
