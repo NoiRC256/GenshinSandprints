@@ -115,7 +115,10 @@ namespace Sandprints
 
         public void Update()
         {
-            if (FollowTarget != null) this.transform.position = FollowTarget.position;
+            if (FollowTarget != null)
+            {
+                this.transform.position = new Vector3(this.transform.position.x, FollowTarget.position.y, this.transform.position.z);
+            }
             ObjectCam.orthographicSize = CamOrthographicSize;
             TerrainCam.orthographicSize = CamOrthographicSize;
             Shader.SetGlobalVector("_SandprintsCamPos", TerrainCam.transform.position);

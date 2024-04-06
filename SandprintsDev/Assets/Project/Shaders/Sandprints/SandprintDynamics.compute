@@ -32,7 +32,7 @@ void CSMain(uint3 id : SV_DispatchThreadID)
 
     // Add new indent pixels.
     float objectDepth = ObjectDepthMap[id.xy].r;
-    float terrainDepth = (1.0 - TerrainDepthMap[uint2(id.x, Height - id.y)].r);
+    float terrainDepth = (1.0 - TerrainDepthMap[uint2(Width - id.x, Height - id.y)].r);
     // Calculate indent depth by normalizing object depth based on terrain depth.
     float indentDepth = clamp((objectDepth - terrainDepth) * CamDistance, 0, 1);
     curResult = clamp(max(curResult, indentDepth), 0, 1);
