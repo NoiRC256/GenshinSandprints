@@ -3,7 +3,7 @@ This is an early attempt at recreating Genshin Impact’s interactive sand defor
 
 Blog post: https://noirccc.net/blog/posts/484
 
-Note: This is just a prove of concept and won't be production ready any time soon
+Note: This is just a proof of concept and won't be production ready any time soon
 
 ## Features
 - :heavy_check_mark: Distance-based dynamic tessellation.
